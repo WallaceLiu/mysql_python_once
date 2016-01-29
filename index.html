@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Mysql python once : 利用 Python 只连接一次 MySQL 数据库。">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Mysql python once</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/WallaceLiu/mysql_python_once">View on GitHub</a>
+
+          <h1 id="project_title">Mysql python once</h1>
+          <h2 id="project_tagline">利用 Python 只连接一次 MySQL 数据库。</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/WallaceLiu/mysql_python_once/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/WallaceLiu/mysql_python_once/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="项目背景" class="anchor" href="#%E9%A1%B9%E7%9B%AE%E8%83%8C%E6%99%AF" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>项目背景</h1>
+
+<p>最近做个项目，需要进行试驾分析，所谓“试驾”，是指顾客在 4S 店指定人员的陪同下，沿着指定的路线驾驶车辆，从而了解这款汽车的行驶性能和操控性能。通常，无论是车厂（制造商），还是4S店（经销商），对车辆的试驾都比较感兴趣。从车厂的角度，不仅仅可以知道某辆车是否受欢迎，还可以监控4S店对车辆的使用的情况（车厂肯定不愿意原本是用来卖钱的车被私用）。</p>
+
+<p>所以，试驾分析，是利用车载设备，比如 OBD、车机，或是其他能监控车辆的设备，我们采用 OBD，发送给软件平台一系列车辆实时状态消息，如GPS定位、百公里耗油、报警等，平台根据这些消息，以及4S店设置的电子围栏，进行试驾分析，包括试驾开始时间、试驾结束时间、试驾持续时间、行驶里程、油耗、平均速度、最大速度等。</p>
+
+<p>试驾分析算法，虽然有一定难度（核心算法1000多行），但跟测试这个算法相比，简直容易得不了。OBD 由另一个公司生产，他们只给了我们文档，来说明OBD消息二进制流的格式，由我们自己解析，再进行试驾分析。事实上，这个项目我的工作，要完成两个程序：消息解析服务和试驾分析服务，2个月完成，一共将近3.8万行代码，但是前期没有任何测试手段进行软件测试，直到3个月后公司安排实车测试~</p>
+
+<p>但问题来了，如果每次想测试软件和算法，都要用实车，这成本太高了，尤其是时间成本。程序员的时间很宝贵的。唯一的办法是，另写一个程序，能够模拟OBD发送消息，相当于把之前实车的数据“回放”一遍。不仅如此，最好能自定义几个命令，来控制消息的发送以及电子围栏和相关时间的设置，比如，</p>
+
+<ul>
+<li>“send”表示发送指定消息；</li>
+<li>“wait”表示等待指定时间后再发送一下一个消息；</li>
+<li>“set”表示设置电子围栏，或采集时间，或报备时间，即试驾分析只在采集时间内、报备时间外进行。</li>
+<li>“echo”表示显示信息。
+示例：
+send 5830
+wait 1
+send 5841
+wait 1
+echo 将发送报警...
+send 5842
+……</li>
+</ul>
+
+<p>事实也是这么做的。我用 Python 写了一个程序，并利用 <a href="https://github.com/nestordeharo/mysql-python-class">nestordeharo/mysql-python-class</a> 库访问 MySQL，可意外来了，时不时地程序会报错，MySQL 拒绝我的连接请求，有时一星期没事，有时完全无法使用。虽然我也知道，这个程序访问数据库太频繁，效率太低，但只是作为内部测试工具，没必要写的太好~后来实在受不了了，严重影响测试进度，就弃用上面的库，自己写个简单的 Python 库，它只访问一次数据库。</p>
+
+<hr>
+
+<h1>
+<a id="功能简介" class="anchor" href="#%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>功能简介</h1>
+
+<p>该 Python 库只访问一次 MySQL 数据库。</p>
+
+<hr>
+
+<h1>
+<a id="api" class="anchor" href="#api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>API</h1>
+
+<p>假设，有个表 t1，它有四个字段：id、name、age、loc。</p>
+
+<h2>
+<a id="-openself" class="anchor" href="#-openself" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>* open(self)</h2>
+
+<p>打开数据库。</p>
+
+<h2>
+<a id="-closeself" class="anchor" href="#-closeself" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>* close(self)</h2>
+
+<p>关闭数据库。</p>
+
+<h2>
+<a id="-selectself-table-wherenone-args-kwargs" class="anchor" href="#-selectself-table-wherenone-args-kwargs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>* select(self, table, where=None, <em>args, *</em>kwargs)</h2>
+
+<p>若查找ID为1的用户：</p>
+
+<p><code>SELECT id,name FROM t1 WHERE id='1'</code></p>
+
+<p>可以这样调用该方法：</p>
+
+<p><code>select('t1', 'id = %s ', 'id', 'name', id='1')</code></p>
+
+<h2>
+<a id="-insertself-table-args-kwargs" class="anchor" href="#-insertself-table-args-kwargs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>* insert(self, table, <em>args, *</em>kwargs)</h2>
+
+<p>若想插入一条记录：</p>
+
+<p><code>INSERT INTO t1(id, name, age, loc) VALUES(2,'person2', '20', '北京')</code></p>
+
+<p>可以这样调用该方法：</p>
+
+<p><code>insert('t1', id='2', name='person2', age='20')</code></p>
+
+<h2>
+<a id="-updateself-table-wherenone-args-kwargs" class="anchor" href="#-updateself-table-wherenone-args-kwargs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>* update(self, table, where=None, <em>args, *</em>kwargs)</h2>
+
+<p>若想更新一条记录：</p>
+
+<p><code>UPDATE t1 SET name='p2' WHERE id='2'</code></p>
+
+<p>可以这样调用该方法：</p>
+
+<p><code>update('t1', 'id = %s ', '2', name='p2')</code></p>
+
+<h2>
+<a id="-deleteself-table-wherenone-args" class="anchor" href="#-deleteself-table-wherenone-args" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>* delete(self, table, where=None, *args)</h2>
+
+<p>若想删除ID为2的记录：</p>
+
+<p><code>DELETE FROM t1 where id='2'</code></p>
+
+<p>可以这样调用该方法：</p>
+
+<p><code>delete('t1', ' id = %s ', '2')</code></p>
+
+<h2>
+<a id="-select_advancedself-sql-args" class="anchor" href="#-select_advancedself-sql-args" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>* select_advanced(self, sql, *args)</h2>
+
+<p>若想查找北京地区的成年人：</p>
+
+<p><code>SELECT id,name,age FROM t1 WHERE age&gt;18 and loc='北京'</code></p>
+
+<p>可以这样调用该方法：</p>
+
+<p><code>select_advanced('SELECT id,name FROM t1 WHERE age &gt; %s AND loc = %s', ('age', '18'),('loc','北京'))</code></p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Mysql python once maintained by <a href="https://github.com/WallaceLiu">WallaceLiu</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
