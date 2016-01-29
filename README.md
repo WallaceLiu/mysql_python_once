@@ -1,2 +1,2 @@
 # mysql_python_once
-connect mysql once
+http://wallaceliu.github.io/mysql_python_once/
