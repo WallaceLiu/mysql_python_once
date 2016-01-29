@@ -16,13 +16,19 @@ http://wallaceliu.github.io/mysql_python_once/
 
 示例：
 
-`send 5830`
-`wait 1`
-`send 5841`
-`wait 1`
-`echo 将发送报警...`
-`send 5842`
-`……`
+send 5830
+
+wait 1
+
+send 5841
+
+wait 1
+
+echo 将发送报警...
+
+send 5842
+
+……
 
 事实也是这么做的。我用 Python 写了一个程序，并利用 [nestordeharo/mysql-python-class](https://github.com/nestordeharo/mysql-python-class) 库访问 MySQL，可意外来了，时不时地程序会报错，MySQL 拒绝我的连接请求，有时一星期没事，有时完全无法使用。虽然我也知道，这个程序访问数据库太频繁，效率太低，但只是作为内部测试工具，没必要写的太好~后来实在受不了了，严重影响测试进度，就弃用上面的库，自己写个简单的 Python 库，它只访问一次数据库。
 
