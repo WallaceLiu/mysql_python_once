@@ -13,6 +13,7 @@ http://wallaceliu.github.io/mysql_python_once/
 * “wait”表示等待指定时间后再发送一下一个消息；
 * “set”表示设置电子围栏，或采集时间，或报备时间，即试驾分析只在采集时间内、报备时间外进行。
 * “echo”表示显示信息。
+
 示例：
 send 5830
 wait 1
