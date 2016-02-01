@@ -37,6 +37,8 @@ send 5842
 # 功能简介
 该 Python 库只访问一次 MySQL 数据库。
 
+example 目录下是模拟OBD发送数据。
+
 ***
 
 # API
